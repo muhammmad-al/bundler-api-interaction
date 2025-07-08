@@ -1,19 +1,17 @@
 /**************************************************************************
- *  Gelato bundler → eth_maxPriorityFeePerGas                              *
+ *  Gelato bundler → eth_maxPriorityFeePerGas (Native Mode)               *
  *                                                                        *
  *  ENV required                                                          *
  *  ────────────────────────────────────────────────────────────────────── *
- *  GELATO_API_KEY   1Balance sponsor key (or leave blank for native pay) *
+ *  GELATO_API_KEY   Optional (not used in native mode)                   *
  *  CHAIN_ID         default 11155111 (Sepolia)                           *
  **************************************************************************/
 import 'dotenv/config';
 
-const apiKey  = process.env.GELATO_API_KEY ?? '';   // key is optional here
 const chainId = process.env.CHAIN_ID ?? '11155111'; // Sepolia default
 
-const bundlerUrl =
-  `https://api.gelato.digital/bundlers/${chainId}/rpc` +
-  (apiKey ? `?sponsorApiKey=${apiKey}` : '');
+// In native mode, we don't use the API key
+const bundlerUrl = `https://api.gelato.digital/bundlers/${chainId}/rpc`;
 
 const body = {
   id: 1,
@@ -23,7 +21,9 @@ const body = {
 };
 
 (async () => {
-  console.log('➡️  Requesting maxPriorityFee …');
+  console.log('➡️  Requesting maxPriorityFee (Native Mode)…');
+  console.log('💸 Mode: Native (no sponsorship)');
+  
   const res = await fetch(bundlerUrl, {
     method : 'POST',
     headers: { 'content-type': 'application/json' },
@@ -33,6 +33,7 @@ const body = {
   if (res.result) {
     const gwei = parseInt(res.result, 16) / 1e9;
     console.log(`✅  maxPriorityFeePerGas: ${res.result}  (~${gwei} gwei)`);
+    console.log('💡 Note: In native mode, you pay gas fees yourself');
   } else {
     console.error('❌  Gelato error:\n', res.error || res);
     process.exit(1);
