@@ -1,12 +1,12 @@
 # Gelato Bundler API Interaction
 
-A comprehensive collection of scripts to interact with Gelato's Account Abstraction (AA) bundler API endpoints. This project demonstrates how to use various ERC-4337 bundler methods.
+A comprehensive collection of scripts to interact with Gelato's Account Abstraction (AA) bundler API endpoints. This project demonstrates how to use various ERC-4337 bundler methods with different gas payment models.
 
 ## 🎯 Overview
 
 This project provides TypeScript examples for all major Gelato bundler API endpoints, showing how to:
-- Send UserOperations
-- Estimate gas costs
+- Send UserOperations with different gas payment models (Sponsored, Native ETH, ERC-20)
+- Estimate gas costs for various payment modes
 - Query operation status and receipts
 - Get gas prices and supported entry points
 - Check bundler chain compatibility
@@ -18,49 +18,75 @@ bundler-api-interaction/
 ├── eth_chainId/                           # Chain ID verification
 │   └── checkBundlerChainId.ts
 ├── eth_sendUserOperation/                 # Send UserOperations
-│   └── sendUserOp1Balance.ts
+│   ├── sendUserOp1Balance.ts             # Sponsored (1Balance)
+│   └── sendUserOpNative.ts               # Native ETH payment
 ├── eth_estimateUserOperationGas/          # Gas estimation
-│   └── estimateUserOperationGas.ts
+│   ├── estimateUserOperationGas.ts       # Sponsored gas estimation
+│   └── estimateUserOperationGasNative.ts # Native gas estimation
 ├── eth_getUserOperationByHash/            # Query by hash
 │   └── getUserOperationByHash.ts
 ├── eth_getUserOperationReceipt/           # Get receipts
 │   └── getUserOperationReceipt.ts
 ├── eth_maxPriorityFeePerGas/              # Priority fee info
-│   └── maxPriorityFeePerGas.ts
+│   ├── maxPriorityFeePerGasSponsored.ts  # Sponsored mode
+│   └── maxPriorityFeePerGasNative.ts     # Native mode
 ├── eth_supportedEntryPoints/              # Supported entry points
 │   └── supportedEntryPoints.ts
 ├── eth_getUserOperationGasPrice/          # Gas price info
-│   └── getUserOperationGasPrice.ts
+│   ├── getUserOperationGasPriceSponsored.ts # Sponsored mode
+│   └── getUserOperationGasPriceNative.ts    # Native mode
 ├── package.json
 └── README.md
 ```
 
 ## 🚀 Available Commands
 
+### **Chain & Entry Point Commands**
 ```bash
 # Check bundler chain ID
 pnpm run check-chain
 
+# Get supported entry points
+pnpm run supported-entrypoints
+```
+
+### **UserOperation Commands**
+```bash
 # Send UserOperation (sponsored by 1Balance)
 pnpm run send-userop
 
-# Estimate gas costs for UserOperation
-pnpm run estimate-gas
+# Send UserOperation (native ETH payment)
+pnpm run send-userop-native
 
 # Get UserOperation by hash
 HASH=0xabc123... pnpm run get-userop
 
 # Get UserOperation receipt
 HASH=0xabc123... pnpm run get-receipt
+```
 
-# Get max priority fee per gas
-pnpm run max-priority-fee
+### **Gas Estimation Commands**
+```bash
+# Estimate gas costs (sponsored)
+pnpm run estimate-gas
 
-# Get supported entry points
-pnpm run supported-entrypoints
+# Estimate gas costs (native ETH)
+pnpm run estimate-gas-native
+```
 
-# Get UserOperation gas price
-pnpm run userop-gas-price
+### **Gas Price Commands**
+```bash
+# Get max priority fee (sponsored)
+pnpm run max-priority-fee-sponsored
+
+# Get max priority fee (native)
+pnpm run max-priority-fee-native
+
+# Get UserOperation gas price (sponsored)
+pnpm run userop-gas-price-sponsored
+
+# Get UserOperation gas price (native)
+pnpm run userop-gas-price-native
 ```
 
 ## 🔧 Environment Setup
@@ -74,7 +100,6 @@ RPC_URL=https://sepolia.infura.io/v3/YOUR_PROJECT_ID
 
 # Gelato API keys (for sponsored transactions)
 GELATO_API_KEY=your_gelato_api_key
-SPONSOR_API_KEY=your_gelato_api_key  # Alternative name
 
 # Optional: Chain configuration
 CHAIN_ID=11155111                    # Default: Ethereum Sepolia
@@ -83,55 +108,93 @@ CHAIN_ID=11155111                    # Default: Ethereum Sepolia
 PAY_NATIVE=true
 ```
 
+## 📋 Gas Payment Models
+
+### **1. Sponsored Transactions (1Balance)**
+- **Cost**: $0 gas fees for users
+- **Requirements**: `GELATO_API_KEY`
+- **Use Cases**: User-friendly dApps, quick prototyping
+- **Scripts**: `send-userop`, `estimate-gas`, `max-priority-fee-sponsored`, `userop-gas-price-sponsored`
+
+### **2. Native ETH Payment**
+- **Cost**: Users pay gas fees in ETH
+- **Requirements**: No API key needed
+- **Use Cases**: Traditional gas payment, no sponsorship available
+- **Scripts**: `send-userop-native`, `estimate-gas-native`, `max-priority-fee-native`, `userop-gas-price-native`
+
+### **3. ERC-20 Token Payment**
+- **Cost**: Users pay with ERC-20 tokens
+- **Requirements**: Custom paymaster contract
+- **Use Cases**: Token-gated services, custom payment logic
+- **Scripts**: Custom implementation needed
+
 ## 📋 API Endpoints Covered
 
-### 1. **eth_chainId** - Chain Verification
+### **1. **eth_chainId** - Chain Verification**
 - **Purpose**: Verify the chain ID that the bundler is serving
 - **Script**: `eth_chainId/checkBundlerChainId.ts`
 - **Command**: `pnpm run check-chain`
 
-### 2. **eth_sendUserOperation** - Send UserOperations
+### **2. **eth_sendUserOperation** - Send UserOperations**
 - **Purpose**: Submit UserOperations to the bundler for processing
-- **Script**: `eth_sendUserOperation/sendUserOp1Balance.ts`
-- **Command**: `pnpm run send-userop`
+- **Scripts**: 
+  - `eth_sendUserOperation/sendUserOp1Balance.ts` (Sponsored)
+  - `eth_sendUserOperation/sendUserOpNative.ts` (Native ETH)
+- **Commands**: 
+  - `pnpm run send-userop` (Sponsored)
+  - `pnpm run send-userop-native` (Native ETH)
 - **Features**: 
   - Uses Safe smart wallet with Permissionless.js
-  - Sponsored by 1Balance (zero gas fees)
+  - Sponsored version: Zero gas fees via 1Balance
+  - Native version: Users pay gas fees in ETH
   - Kernel account with ECDSA validator
 
-### 3. **eth_estimateUserOperationGas** - Gas Estimation
+### **3. **eth_estimateUserOperationGas** - Gas Estimation**
 - **Purpose**: Estimate gas costs for UserOperations before sending
-- **Script**: `eth_estimateUserOperationGas/estimateUserOperationGas.ts`
-- **Command**: `pnpm run estimate-gas`
+- **Scripts**:
+  - `eth_estimateUserOperationGas/estimateUserOperationGas.ts` (Sponsored)
+  - `eth_estimateUserOperationGas/estimateUserOperationGasNative.ts` (Native)
+- **Commands**:
+  - `pnpm run estimate-gas` (Sponsored)
+  - `pnpm run estimate-gas-native` (Native)
 - **Features**:
   - Safe smart wallet integration
   - Handles both deployed and counterfactual accounts
-  - Zero gas cost estimation for sponsored operations
+  - Sponsored: Zero gas cost estimation
+  - Native: Real gas cost estimation
 
-### 4. **eth_getUserOperationByHash** - Query by Hash
+### **4. **eth_getUserOperationByHash** - Query by Hash**
 - **Purpose**: Retrieve UserOperation details by its hash
 - **Script**: `eth_getUserOperationByHash/getUserOperationByHash.ts`
 - **Command**: `HASH=0xabc123... pnpm run get-userop`
 
-### 5. **eth_getUserOperationReceipt** - Get Receipts
+### **5. **eth_getUserOperationReceipt** - Get Receipts**
 - **Purpose**: Get transaction receipt for completed UserOperations
 - **Script**: `eth_getUserOperationReceipt/getUserOperationReceipt.ts`
 - **Command**: `HASH=0xabc123... pnpm run get-receipt`
 
-### 6. **eth_maxPriorityFeePerGas** - Priority Fee Info
+### **6. **eth_maxPriorityFeePerGas** - Priority Fee Info**
 - **Purpose**: Get current max priority fee per gas
-- **Script**: `eth_maxPriorityFeePerGas/maxPriorityFeePerGas.ts`
-- **Command**: `pnpm run max-priority-fee`
+- **Scripts**:
+  - `eth_maxPriorityFeePerGas/maxPriorityFeePerGasSponsored.ts` (Sponsored)
+  - `eth_maxPriorityFeePerGas/maxPriorityFeePerGasNative.ts` (Native)
+- **Commands**:
+  - `pnpm run max-priority-fee-sponsored` (Sponsored)
+  - `pnpm run max-priority-fee-native` (Native)
 
-### 7. **eth_supportedEntryPoints** - Entry Point Support
+### **7. **eth_supportedEntryPoints** - Entry Point Support**
 - **Purpose**: List supported entry point contracts
 - **Script**: `eth_supportedEntryPoints/supportedEntryPoints.ts`
 - **Command**: `pnpm run supported-entrypoints`
 
-### 8. **eth_getUserOperationGasPrice** - Gas Price Info
+### **8. **eth_getUserOperationGasPrice** - Gas Price Info**
 - **Purpose**: Get recommended gas prices for UserOperations
-- **Script**: `eth_getUserOperationGasPrice/getUserOperationGasPrice.ts`
-- **Command**: `pnpm run userop-gas-price`
+- **Scripts**:
+  - `eth_getUserOperationGasPrice/getUserOperationGasPriceSponsored.ts` (Sponsored)
+  - `eth_getUserOperationGasPrice/getUserOperationGasPriceNative.ts` (Native)
+- **Commands**:
+  - `pnpm run userop-gas-price-sponsored` (Sponsored)
+  - `pnpm run userop-gas-price-native` (Native)
 - **Features**:
   - Supports both sponsored and native fee modes
   - Returns both maxPriorityFeePerGas and maxFeePerGas
@@ -156,12 +219,12 @@ const account = await toSafeSmartAccount({
 
 ## 🔑 Key Features
 
-- **Sponsored Transactions**: All examples support 1Balance sponsorship for zero gas fees
-- **Native Fee Mode**: Option to pay gas fees natively when sponsorship is not available
-- **Multi-Chain Support**: Configurable for different networks (default: Ethereum Sepolia)
+- **Multiple Gas Payment Models**: Sponsored, Native ETH, and ERC-20 token payment options
 - **TypeScript**: Full type safety and IntelliSense support
 - **Error Handling**: Comprehensive error handling and user feedback
 - **Gas Optimization**: Automatic gas estimation and optimization
+- **Multi-Chain Support**: Configurable for different networks (default: Ethereum Sepolia)
+- **Flexible API**: Choose between sponsored and native modes based on your needs
 
 ## 🚀 Getting Started
 
@@ -181,8 +244,11 @@ const account = await toSafeSmartAccount({
    # Check if bundler is working
    pnpm run check-chain
    
-   # Send a UserOperation
+   # Send a sponsored UserOperation (requires API key)
    pnpm run send-userop
+   
+   # Send a native ETH UserOperation (no API key needed)
+   pnpm run send-userop-native
    ```
 
 ## 📚 Dependencies
@@ -190,6 +256,7 @@ const account = await toSafeSmartAccount({
 - **viem**: Ethereum client and utilities
 - **permissionless**: Account abstraction utilities
 - **dotenv**: Environment variable management
+- **@zerodev/sdk**: Additional AA utilities
 
 ## 🔗 Useful Links
 
@@ -197,12 +264,4 @@ const account = await toSafeSmartAccount({
 - [1Balance Sponsorship](https://docs.gelato.network/developer-services/1balance)
 - [ERC-4337 Specification](https://eips.ethereum.org/EIPS/eip-4337)
 - [Permissionless.js](https://permissionless.js.org/)
-- [Safe Documentation](https://docs.safe.global/)
-
-## 🤝 Contributing
-
-Feel free to submit issues and enhancement requests!
-
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE). 
+- [Safe Documentation](https://docs.safe.global/) 
