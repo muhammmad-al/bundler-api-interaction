@@ -5,7 +5,7 @@ A comprehensive collection of scripts to interact with Gelato's Account Abstract
 ## 🎯 Overview
 
 This project provides TypeScript examples for all major Gelato bundler API endpoints, showing how to:
-- Send UserOperations with different gas payment models (Sponsored, Native ETH, ERC-20)
+- Send UserOperations with different gas payment models (Sponsored, Native ETH)
 - Estimate gas costs for various payment modes
 - Query operation status and receipts
 - Get gas prices and supported entry points
